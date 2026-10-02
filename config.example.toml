@@ -3,7 +3,7 @@
 
 [paths]
 acsm_inbox      = 'D:\Books\inbox'                                # where downloaded .acsm files land
-acsm_done       = 'D:\Books\inbox\done'                           # processed .acsm files are moved here
+acsm_done       = 'D:\Books\_done_acsm'                           # processed .acsm files are moved here
 ade_output      = 'C:\Users\<you>\Documents\My Digital Editions'  # ADE download folder
 calibre_library = 'D:\Books\calibre'
 clean_epub      = 'D:\Books\CleanEpub'
