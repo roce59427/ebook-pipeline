@@ -4,10 +4,11 @@ Usage:
     python ebook_pipeline.py                 # process every .acsm in the inbox once
     python ebook_pipeline.py --watch         # keep polling the inbox
     python ebook_pipeline.py --epub FILE     # skip ADE, start from an ADE-downloaded epub
-    python ebook_pipeline.py --notes         # copy KyBook notes (iCloud) into Obsidian as .md
+    python ebook_pipeline.py --notes         # copy Readest note exports into Obsidian
 """
 
 import argparse
+import json
 import re
 import shutil
 import subprocess
@@ -188,23 +189,37 @@ def copy_to_icloud(epub: Path, config: dict) -> None:
     print(f"  Copied to iCloud: {destination}")
 
 
-# ---------- KyBook notes -> Obsidian ----------
+# ---------- Readest notes -> Obsidian ----------
 
-def decode_note(raw: bytes) -> str:
-    if raw.startswith((b"\xff\xfe", b"\xfe\xff")):
-        return raw.decode("utf-16")
-    try:
-        return raw.decode("utf-8-sig")
-    except UnicodeDecodeError:
-        return raw.decode("big5", errors="replace")
+def parse_note_metadata(text: str, note: Path) -> dict:
+    """Read title/author/date from a Readest export:
+    "# <title>" / "**作者**: <author>" / "**從 Readest 匯出**: <date>"
+    """
+    title = re.search(r"^#\s+(.+)$", text, re.MULTILINE)
+    author = re.search(r"^\*\*作者\*\*:\s*(.+)$", text, re.MULTILINE)
+    exported = re.search(r"^\*\*從 Readest 匯出\*\*:\s*(\d{4}-\d{2}-\d{2})", text, re.MULTILINE)
+    return {
+        "title": title.group(1).strip() if title else note.stem,
+        "author": author.group(1).strip() if author else "",
+        "date": exported.group(1) if exported else time.strftime("%Y-%m-%d", time.localtime(note.stat().st_mtime)),
+        "source": "readest",
+    }
 
 
-def note_filename(text: str, fallback: str) -> str:
-    # KyBook exports start with "# Notes from <book title>".
-    first_line = text.lstrip().splitlines()[0] if text.strip() else ""
-    match = re.match(r"#\s*Notes from\s+(.+)", first_line)
-    title = match.group(1).strip() if match else fallback
-    return re.sub(r'[\\/:*?"<>|]', "_", title) or fallback
+def with_frontmatter(text: str, metadata: dict) -> str:
+    if text.startswith("---\n"):
+        return text
+    lines = [
+        "---",
+        f"title: {json.dumps(metadata['title'], ensure_ascii=False)}",
+        f"date: {metadata['date']}",
+        "tags: [書摘]",
+        f"source: {metadata['source']}",
+        f"author: {json.dumps(metadata['author'], ensure_ascii=False)}",
+        "---",
+        "",
+    ]
+    return "\n".join(lines) + text
 
 
 def sync_notes(config: dict) -> None:
@@ -217,14 +232,14 @@ def sync_notes(config: dict) -> None:
 
     synced = 0
     # Oldest first, so a newer export of the same book overwrites an older one.
-    for note in sorted(source.glob("*"), key=lambda p: p.stat().st_mtime):
-        if note.suffix.lower() not in {".txt", ".md"}:
-            continue
-        text = decode_note(note.read_bytes())
-        destination = target / f"{note_filename(text, note.stem)}.md"
+    for note in sorted(source.glob("*.md"), key=lambda p: p.stat().st_mtime):
+        text = note.read_text(encoding="utf-8-sig").replace("\r\n", "\n")
+        metadata = parse_note_metadata(text, note)
+        filename = re.sub(r'[\\/:*?"<>|]', "_", metadata["title"]) or note.stem
+        destination = target / f"{filename}.md"
         if destination.exists() and destination.stat().st_mtime >= note.stat().st_mtime:
             continue
-        destination.write_text(text, encoding="utf-8", newline="\n")
+        destination.write_text(with_frontmatter(text, metadata), encoding="utf-8", newline="\n")
         print(f"  Note -> {destination}")
         synced += 1
     print(f"  {synced} note(s) synced.")
@@ -268,7 +283,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="ACSM -> ADE -> Calibre -> iCloud")
     parser.add_argument("--watch", action="store_true", help="keep polling the ACSM inbox")
     parser.add_argument("--epub", type=Path, help="skip ADE and process this already-downloaded book")
-    parser.add_argument("--notes", action="store_true", help="copy KyBook notes from iCloud into Obsidian as .md")
+    parser.add_argument("--notes", action="store_true", help="copy Readest note exports into Obsidian with frontmatter")
     args = parser.parse_args()
     config = load_config()
 

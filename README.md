@@ -38,6 +38,6 @@ python ebook_pipeline.py
 | *(none)* | Process every `.acsm` in the inbox once |
 | `--watch` | Keep polling the inbox |
 | `--epub FILE` | Skip ADE; start from a book ADE already downloaded |
-| `--notes` | Copy KyBook notes from `notes_source` into `obsidian_notes` as UTF-8 `.md` |
+| `--notes` | Copy Readest note exports from `notes_source` into `obsidian_notes` as UTF-8 `.md` with frontmatter (title, author, date, source) |
 
 Processed `.acsm` files are moved to `acsm_done`. If an exported EPUB still carries Adobe DRM, the script stops before copying it to iCloud.

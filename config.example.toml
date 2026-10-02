@@ -8,7 +8,7 @@ ade_output      = 'C:\Users\<you>\Documents\My Digital Editions'  # ADE download
 calibre_library = 'D:\Books\calibre'
 clean_epub      = 'D:\Books\CleanEpub'
 icloud          = ''                                              # e.g. 'C:\Users\<you>\iCloudDrive\Books'; empty = skip
-notes_source    = ''                                              # KyBook exported notes, e.g. 'C:\Users\<you>\iCloudDrive\Books\Note'
+notes_source    = ''                                              # where Readest exports notes, e.g. 'D:\Books\Note'
 obsidian_notes  = ''                                              # folder inside your (local) Obsidian vault
 
 [apps]
