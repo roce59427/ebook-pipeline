@@ -1,0 +1,16 @@
+# Local paths / anything personal
+config.toml
+*.local.toml
+.env
+
+# Never commit books or keys
+*.acsm
+*.epub
+*.pdf
+*.der
+*.adobekey
+*.k4i
+
+__pycache__/
+*.pyc
+.venv/

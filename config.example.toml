@@ -1,0 +1,21 @@
+# Copy this file to config.toml (git-ignored) and fill in your own paths.
+# Use single quotes so Windows backslashes are taken literally.
+
+[paths]
+acsm_inbox      = 'D:\Books\inbox'                                # where downloaded .acsm files land
+acsm_done       = 'D:\Books\inbox\done'                           # processed .acsm files are moved here
+ade_output      = 'C:\Users\<you>\Documents\My Digital Editions'  # ADE download folder
+calibre_library = 'D:\Books\calibre'
+clean_epub      = 'D:\Books\CleanEpub'
+icloud          = ''                                              # e.g. 'C:\Users\<you>\iCloudDrive\Books'; empty = skip
+notes_source    = ''                                              # KyBook exported notes, e.g. 'C:\Users\<you>\iCloudDrive\Books\Note'
+obsidian_notes  = ''                                              # folder inside your (local) Obsidian vault
+
+[apps]
+ade_exe       = 'C:\Program Files (x86)\Adobe\Adobe Digital Editions 4.5\DigitalEditions.exe'
+calibredb_exe = 'C:\Program Files\Calibre2\calibredb.exe'
+
+[options]
+ade_timeout_sec    = 180
+watch_interval_sec = 10
+export_template    = '{title} - {authors}'
